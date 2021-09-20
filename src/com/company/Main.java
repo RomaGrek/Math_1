@@ -12,6 +12,7 @@ import java.util.*;
 для тестов:
 !A&!B->!(A|B)
 A->!B->!C&D|!T&U&V
+
 (A&B)&C
 */
 
@@ -28,7 +29,8 @@ public class Main {
 
     /* метод для проверки на то, является ли это оператором или нет */
     public static boolean checkOperator(String element) {
-        return element.equals("!") || element.equals("->") || element.equals("|") || element.equals("&");
+        return element.equals("!") || element.equals("->") || element.equals("|") || element.equals("&")
+                || element.equals("_");
     }
 
     /* метод получения индекса максмимального веса оператора,
@@ -80,18 +82,37 @@ public class Main {
 
         /* соеднинеие элементов из нескольких символов */
 
-
-
-
         int count = 1;
         ArrayList<Integer> weightList = new ArrayList<>();     // 2 массив весов
         ArrayList<String> operatorList = new ArrayList<>();    // 3 массив операторов
 
+
+
+        /* проблема с первым тестом в отрицании !(a|b) - после удлаения все ок */
+        int indexGeneralElement = -1;
+        boolean flagGeneralElement = false;
+        for (int i = 0; i < stroke.length; i++) {
+            if (!stroke[i].equals("!") && !stroke[i].equals("&") && !stroke[i].equals("|") && !stroke[i].equals("-")
+            && !stroke[i].equals(">") && !stroke[i].equals("(") && !stroke[i].equals(")")) {
+
+                if (!flagGeneralElement) {
+                    indexGeneralElement = i;
+                    flagGeneralElement = true;
+                }else {
+                    stroke[indexGeneralElement] = stroke[indexGeneralElement] + stroke[i];
+                    stroke[i] = "_";
+                }
+            }else {
+                flagGeneralElement = false;
+            }
+        }
+
+
         /* Расчет весов для операторов
-        * !!!!!!!!! Потом вынести в отдельную функцию */
+        * !!!!!!!!! Потом можно вынести в отдельную функцию*/
         for (int i = 0; i < stroke.length; i ++) {
             switch (stroke[i]) {
-                case "0":
+                case "_":
                     break;
                 case "(":
                     count++;
@@ -102,7 +123,7 @@ public class Main {
                 case "!":
                     if (checkSymbols(stroke[i + 1])) {
                         stroke[i] = "(" + stroke[i] + stroke[i + 1] + ")";
-                        stroke[i + 1] = "0";
+                        stroke[i + 1] = "_";
                     } else {
                         weightList.add(6 * count);
                         operatorList.add(stroke[i]);
@@ -118,38 +139,19 @@ public class Main {
                     break;
                 case "-":
                     stroke[i] = stroke[i] + stroke[i + 1];
-                    stroke[i + 1] = "0";
+                    stroke[i + 1] = "_";
                     weightList.add(3 * count);
                     operatorList.add(stroke[i]);
                     break;
             }
         }
 
-
-
-        /* для фикса бага с обработкой элементов состоящих изнескольких имен
-        * идея - соединять их тупо а текцщие обнулять
-        * кароче попробовать заново или другую идею фигачить */
-//        boolean flag = false;
-//        for (int i = 0; i < stroke.length; i++) {
-//            if (!checkOperator(stroke[i])) {
-//                if (!flag) flag = true ;
-//                else {
-//                    stroke[i - 1] += stroke[i];
-//                    stroke[i] = "0";
-//                }
-//            } else flag = false;
-//        }
-
-
-
         List<String> strokeList = new ArrayList<>(Arrays.asList(stroke));
 
 
-        strokeList.removeIf(element -> element.equals("0"));
+        strokeList.removeIf(element -> element.equals("_"));
         strokeList.removeIf(element -> element.equals("("));
         strokeList.removeIf(element -> element.equals(")"));
-
 
 
         /* теперь нужно сначала определить какой именно оператор имеет такой вес
@@ -180,16 +182,16 @@ public class Main {
                     if (stroke[j].equals(operator) && countOperatorNumber == maxIndex) {
                         if (stroke[j].equals("!")) {
                             stroke[j] = "(" + stroke[j] + stroke[j + 1] + ")";
-                            stroke[j + 1] = "0";
-                            System.out.print("обработка отрицания: ");
-                            System.out.println(stroke[j]);
+                            stroke[j + 1] = "_";
+//                            System.out.print("обработка отрицания: ");
+//                            System.out.println(stroke[j]);
 
                         }else {
-                            System.out.print("обработка других опертаоров ");
+//                            System.out.print("обработка других опертаоров ");
                             stroke[j] = "(" + stroke[j] + "," + stroke[j - 1] + "," + stroke[j + 1] + ")";
-                            stroke[j - 1] ="0";
-                            stroke[j + 1] = "0";
-                            System.out.println(stroke[j]);
+                            stroke[j - 1] ="_";
+                            stroke[j + 1] = "_";
+//                            System.out.println(stroke[j]);
 
                         }
                     }
@@ -204,37 +206,34 @@ public class Main {
             // нужно отчистить
 
             List<String> strokeListo = new ArrayList<>(Arrays.asList(stroke));
-            strokeListo.removeIf(element -> element.equals("0"));
+            strokeListo.removeIf(element -> element.equals("_"));
             stroke = strokeListo.toArray(new String[0]);
 
 
         }
 
 
-
-        /* вывод списка весов операторов */
-        System.out.print("weightList: { ");
-        for (Integer element : weightList) {
-            System.out.print(element + " ");
-        }
-        System.out.println("}");
-
-
-        /* вывод списка всех операторов, которые нужно обработать */
-        System.out.print("operotorList: { ");
-        for (String operator : operatorList) {
-            System.out.print(operator + " ");
-        }
-        System.out.println("}");
+//
+//        /* вывод списка весов операторов */
+//        System.out.print("weightList: { ");
+//        for (Integer element : weightList) {
+//            System.out.print(element + " ");
+//        }
+//        System.out.println("}");
+//
+//
+//        /* вывод списка всех операторов, которые нужно обработать */
+//        System.out.print("operotorList: { ");
+//        for (String operator : operatorList) {
+//            System.out.print(operator + " ");
+//        }
+//        System.out.println("}");
 
 
         /* вывод основного массива stroke (там где мы будем в конце делать словарь) */
-        System.out.print("Ответ:  ");
+//        System.out.print("Ответ:  ");
         for (String s : stroke) {
             System.out.print(s + " ");
         }
-
-
-
     }
 }
